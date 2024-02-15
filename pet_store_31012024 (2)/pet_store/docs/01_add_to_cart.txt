@@ -1,0 +1,99 @@
+=======================================================================================================================================
+
+urls.py: 
+This URL takes the pet id as path parameter
+The pet id will be sent from the pet details page or cart items page, depending on where we are adding pet to cart.
+path('add-to-cart/<int:pet_id>', views.add_to_cart, name='add_to_cart'),
+
+=======================================================================================================================================
+
+models.py:
+We will create a table to save the cart items for the current logged in user.
+The cart items are related to user so that the carts items are for respective logged in user can be displayed.
+CartItem table will have three columns: customer, pet, quantity
+>> customer will be used to get the cart items of current logged in user
+>> pet will be used to get the pet details in cart
+>> quantity will be used to calculate the pet price and total order price
+
+class CartItem(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, related_name='pets')
+    quantity = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = "cart_items"
+        ordering = ('pet',)
+
+    def __str__(self):
+        return self.pet.name
+
+=======================================================================================================================================
+
+templates:
+pet can be added to the cart in two places: pet details page and cart items page
+details.html: has a form with drop down to select quantity 1 to 5 pets along with Add to cart button
+    <form action="{% url 'add_to_cart' pet.id %}" method="post">
+        {% csrf_token %}
+        <div class="mt-5 form-group">
+            <label for="quantity">Select Quantity</label>
+            <select name="quantity" class="form-control" id="quantity">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+            </select>
+        </div>
+        <button class="btn btn-primary"> <i class="me-1 fa fa-shopping-basket"></i> Add to cart </button>
+    </form>
+
+
+cart_items.html: has a form with drop down to select quantity 1 to 5 pets along with Update button
+In this html to display the quantity already in cart, logic is written to compare the actual quantity with range.
+Which ever quantity is in cart items that quantity value is selected in drop down. for loop is used to match the quantity in cart with range 1 to 5
+
+    <form action="{% url 'add_to_cart' item.pet.id %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <select name="quantity" class="form-control" id="quantity">
+                {% for n in qty_list %}
+                    {% if n == item.quantity %}
+                        <option selected>{{ n }}</option>
+                    {% else %}
+                        <option>{{ n }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <button style="width:100%" class="btn btn-success" type="submit"><i class="fa fa-shopping-cart"></i> Update</button>
+    </form>
+
+=======================================================================================================================================
+
+views.py:
+
+def add_to_cart(request, pet_id):
+    pet = Pet.objects.get(id=pet_id)
+    customer = Customer.objects.get(user=request.user)
+    # Get the cart items for given customer and pet
+    existing_cart_items = CartItem.objects.filter(customer__user=request.user, pet=pet)
+    if len(existing_cart_items) == 0:
+        cart_item = CartItem.objects.create(customer=customer, pet=pet)
+    else:
+        cart_item = existing_cart_items[0]
+
+    cart_item.quantity = request.POST['quantity']
+    cart_item.save()
+
+    return redirect('cart_items')
+
+First get the pet instance by using the pet id sent as path parameter.
+Since we have to add the pet to logged in customer, get the customer by using the request.user object.
+
+Now get if any existing items are there in CartItem table with given customer and pet by using the filter method passing customer and pet.
+>> If not exists then create the Cart Item
+>> If already exists then get the cart item and update quantity and save
+
+Once the cart item is saved redirect to the cart items page.
+
+=======================================================================================================================================

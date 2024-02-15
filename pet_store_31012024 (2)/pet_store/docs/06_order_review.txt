@@ -1,0 +1,37 @@
+=======================================================================================================================================
+
+Once the user selects shipping address and submit, order review page is displayed. Where user can finally view the pets he will be purchasing.
+
+urls.py: 
+    path('order-review/<int:sa_id>', views.order_review, name='order_review'),
+	
+	
+Since the user has to see the shipping address also, this shipping address id is sent from the select shipping address page to order_review page.
+
+=======================================================================================================================================
+
+models.py: NA
+
+=======================================================================================================================================
+
+templates: order_review.html
+
+This page is similar to cart items except that user cannot change the details here.
+
+This page has Checkout Order button which when clicked will take the user to payment process page.
+Before it takes to payment process the order details are saved to the database.
+
+=======================================================================================================================================
+
+views.py:
+
+def order_review(request, sa_id):
+    template_name = 'order_review.html'
+    context = collect_cart_details(request)
+    context['sa_id'] = ShippingAddress.objects.get(id=sa_id)
+    return render(request, template_name, context=context)
+
+First all the cart items details are collected by reusing the collect_cart_details function.
+To this context shipping address is added so that it will display in the html page.
+
+=======================================================================================================================================

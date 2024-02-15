@@ -1,0 +1,49 @@
+=======================================================================================================================================
+
+urls.py: 
+    path('add-address', views.add_address, name='add_address'),
+
+=======================================================================================================================================
+
+models.py: 
+
+class ShippingAddress(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    building_name = models.CharField(max_length=200, null=False)
+    street = models.CharField(max_length=200, null=False)
+    landmark = models.CharField(max_length=200, blank=True, null=True)
+    city = models.CharField(max_length=30, null=False)
+    state = models.CharField(max_length=30, null=False)
+    zipcode = models.CharField(max_length=6, null=False)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+
+Since the user can have multiple addresses, we are related the customer and shipping address via many to one relationship.
+Whenever the shipping address is added it is connected to the respective logged in user.
+
+=======================================================================================================================================
+
+templates: add_address.html
+
+This page has form which takes the address details.
+
+=======================================================================================================================================
+
+views.py:
+
+def add_address(request):
+    if request.method == 'POST':
+        form = ShippingAddressForm(request.POST)
+        if form.is_valid():
+            sd = form.save(commit=False)
+            sd.customer = Customer.objects.get(id=request.POST['customer'])
+            sd.save()
+            return redirect('list_addresses')
+    else:
+        form = ShippingAddressForm()
+    return render(request, 'add_address.html', {'form': form})
+
+First we are getting the customer by using the request.user object.
+This customer is saved in the ShippingAddress table. This is later used to list the shipping address for respective user.
+
+=======================================================================================================================================

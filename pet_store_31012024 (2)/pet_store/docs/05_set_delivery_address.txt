@@ -1,0 +1,41 @@
+=======================================================================================================================================
+
+urls.py: 
+    path('set-delivery-address', views.set_delivery_address, name='set_delivery_address'),
+
+=======================================================================================================================================
+
+models.py: 
+
+=======================================================================================================================================
+
+templates: delivery_address.html
+
+This page will display the list of addresses in users account with radio buttons.
+User will select the delivery address and submit.
+This address is passed to the order review page.
+
+=======================================================================================================================================
+
+views.py:
+
+def set_delivery_address(request):
+    template_name = "delivery_address.html"
+    addr_list = ShippingAddress.objects.filter(customer__user__id=request.user.id)
+    if request.method == "POST":
+        form = SetDeliveryAddressForm(request.POST)
+        if form.is_valid():
+            return redirect('order_review', sa_id=form.cleaned_data['delivery_address'])
+    else:
+        form = SetDeliveryAddressForm()
+    context = {
+        'address_list': addr_list,
+        'form': form
+    }
+    return render(request, template_name, context=context)
+
+
+For the current user get the list of addresses added in the ShippingAddress table for current user. 
+Once the user selects the address, the address id is sent as path parameter to the order_review view.
+
+=======================================================================================================================================

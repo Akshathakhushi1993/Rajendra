@@ -1,0 +1,79 @@
+=======================================================================================================================================
+
+Once the payment is done the razorpay will call the payment process function via post method passing order id and amount.
+
+=======================================================================================================================================
+
+
+urls.py: 
+    path('payment-process/<int:order_id>/<int:amount>', views.payment_process, name="payment_process"),
+	
+	
+=======================================================================================================================================
+
+models.py: NA
+
+
+=======================================================================================================================================
+
+templates: done.html
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+       <h1>Your payment was successful</h1>
+       <p>Your payment has been processed successfully.</p>
+       <p>Your Order amount is <strong>{{ amount }}</strong></p>
+       <p>Your transaction ID is <strong>{{ transaction_id }}</strong></p>
+    </div>
+{% endblock %}
+
+After successful payment, the amount, payment id is shown to user.
+
+
+
+=======================================================================================================================================
+
+views.py:
+
+def payment_process(request, order_id, amount):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == "POST":
+        order.complete = True
+        order.save()
+        print("Amount ", amount)
+        print("Type amount str to int ", amount)
+        payment_id = request.POST['razorpay_payment_id']
+        print("Payment Id", payment_id)
+        order.transaction_id = payment_id
+        order.save()
+        payment_client_capture = (client.payment.capture(payment_id, amount))
+        print("Payment Client capture", payment_client_capture)
+        payment_fetch = client.payment.fetch(payment_id)
+        status = payment_fetch['status']
+        amount_fetch = payment_fetch['amount']
+        amount_fetch_inr = amount_fetch
+        print("Payment Fetch", payment_fetch['status'])
+        context = {
+            'amount': amount_fetch_inr,
+            'status': status,
+            'transaction_id': payment_id
+        }
+        return render(request, 'done.html', context=context)
+
+order_id and amount is passed as path parameters from razorpay script.
+order instance is fetched using the order id.
+
+Since the order is successfull, complete field of order is set to True.
+
+razorpay will post the payment id , this id is captured and udpated as transaction_id.
+This transaction_id is set in order instance. Once complete and transaction_id fields are set the order is saved.
+
+razorpay client is used to fetch some more details like amount paid, status.
+
+This details are captured using the razorpay client.
+
+The captured details are sent to done.html to present to the user.
+
+
+=======================================================================================================================================

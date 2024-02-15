@@ -1,0 +1,41 @@
+=======================================================================================================================================
+
+urls.py: 
+    path('remove-from-cart/<int:pet_id>', views.remove_from_cart, name='remove_from_cart'),
+
+=======================================================================================================================================
+
+models.py: NA
+
+=======================================================================================================================================
+
+templates: cart_items.html
+
+In cart items page the below details are displayed:
+Photo of pet
+Name of pet
+Select quantity
+remove pet
+pet unit price
+pet quantity price
+total price of order
+
+So the above details are to be collected and sent as context to cart_items.html
+
+=======================================================================================================================================
+
+views.py:
+
+When the remove button is pressed in cart items page, below view function is called along with the pet id.
+
+def remove_from_cart(request, pet_id):
+    pet = Pet.objects.get(id=pet_id)
+    cart_item = CartItem.objects.get(customer__user=request.user.id, pet=pet)
+    cart_item.delete()
+    return redirect('cart_items')
+	
+Since we have to remove the current logged in user cart items we will first get the cart items matching for current user and select pet.
+Then the item will be deleted from the cart item table.
+
+
+=======================================================================================================================================

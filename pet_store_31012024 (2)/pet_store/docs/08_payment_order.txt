@@ -1,0 +1,93 @@
+=======================================================================================================================================
+
+We have to create a developer account in Razorpay website. From there will get the secret key which can be used to simulate the razorpay
+payment in test mode.
+
+Below line has to be added which will create a Razorpay client who will be used to capture the payment info.
+client = razorpay.Client(auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET))
+
+
+Below settings have to be added in settings.py, these details are received after creating dev account.
+
+RAZOR_KEY_ID = "rzp_test_asdfsdfsdf"
+RAZOR_KEY_SECRET = "u7Iaasdfasdfasdfasdfasdfo"
+
+
+=======================================================================================================================================
+
+
+urls.py: 
+    path('payment-order/', views.payment_order, name="payment_order"),
+	
+	
+=======================================================================================================================================
+
+models.py: NA
+
+
+=======================================================================================================================================
+
+templates: created.html
+    Your order number is <strong>{{ order_id }}</strong><br>
+    Your pay amount is <strong>{{ amount }}</strong> </p>
+    <form action="{% url 'payment_process' order_id amount %}" method="POST">
+        {% csrf_token %}
+        <script
+            src="https://checkout.razorpay.com/v1/checkout.js"
+            data-key={{ public_key }}
+            data-amount={{ amount }}
+            data-buttontext="Pay with Razorpay"
+            data-name="Online Shop"
+            data-description=""
+            data-image="https://your-awesome-site.com/your_logo.jpg"
+            data-prefill.name="Name"
+            data-prefill.email="test@test.com"
+            data-theme.color="#F37254"
+            data-notes.address="Bangalore"
+        ></script>
+        <input type="hidden" value="Hidden Element" name="hidden">
+    </form>
+
+
+Order ID and the total amount will be displayed for user.
+Razorpay provides a script for payment button which is placed in form as shown above.
+The amount is passed to the script values provided by Razor pay.
+
+When clicked on the Pay with Razorpay button, Razorpay payment popup will display with payment options. It will show the amount passed via context.
+This window will be displaying in test mode.
+User have to give valid UPI and complete payment. Once the payment is done the Razorpay script will call the payment_process view function
+by passing order_id and amount.
+
+Order id will be used to update the transaction_id column and complete is set to True.
+
+
+=======================================================================================================================================
+
+views.py:
+
+def payment_order(request):
+    order_id = request.session.get('order_id')
+    print("process_order Order is -> ", order_id)
+    order = get_object_or_404(Order, id=order_id)
+    amount = int(order.get_total_cost()*100)
+    amount_inr = amount
+
+    context = {
+        'order_id': order_id,
+        'public_key': settings.RAZOR_KEY_ID,
+        'amount': amount_inr,
+        'amountorig': amount
+    }
+    return render(
+        request,
+        'created.html',
+        context=context
+    )
+
+First get the order id from session which was saved in checkout order function.
+Get the Order details to get the amount details, these details are passed to html to display to user and to pass to Razor pay payment window.
+
+
+
+
+=======================================================================================================================================

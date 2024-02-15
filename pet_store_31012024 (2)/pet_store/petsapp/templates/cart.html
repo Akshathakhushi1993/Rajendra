@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cart</title>
+</head>
+<body>
+    <h1>Cart</h1>
+    {% if items %}
+        <h2>Order ID: {{ order_id }}</h2>
+        {% if items %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.product.quantity }}</td>
+                            <td>{{ item.product.date_added }}</td>
+                            <td>
+                            <form action="{% url 'add_to_cart' item.pet.id %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <select name="quantity" class="form-control" id="quantity">
+                                        {% for n in qty_range %}
+                                            {% if n == item.qty %}
+                                                <option selected>{{ n }}</option>
+                                            {% else %}
+                                                <option>{{ n }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    {{ item.update_quantity_form.update }}
+                                </div>
+                                <button style="width:100%" class="btn btn-success" type="submit"><i class="fa fa-shopping-cart"></i> Update</button>
+                            </form>
+                            </td>
+                            <td>{{ item.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        <p class="text-right">
+            {{ order_id }}
+          <a href="{% url 'order_create' order_id %}" class="button">
+            Place Order
+          </a>
+        </p>
+        {% else %}
+            <p>No items in the cart</p>
+        {% endif %}
+    {% else %}
+        <p>No active order found</p>
+    {% endif %}
+
+</body>
+</html>

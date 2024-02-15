@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cart</title>
+</head>
+<body>
+    <h1>Cart</h1>
+    {% if items %}
+        <h2>Order ID: {{ order_id }}</h2>
+        {% if items %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.product.quantity }}</td>
+                            <td>{{ item.product.date_added }}</td>
+                            <td>
+
+                                <form action="{% url 'cart' item.id item.product.id %}" method="post">
+                                  {{ item.form.quantity }}
+                                  {{ item.form.update }}
+                                  <input type="submit" value="Update">
+                                  {% csrf_token %}
+                                </form>
+                                </td>
+                                <td>{{ item.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        <p class="text-right">
+            {{ order_id }}
+          <a href="{% url 'order_create' order_id %}" class="button">
+            Place Order
+          </a>
+        </p>
+        {% else %}
+            <p>No items in the cart</p>
+        {% endif %}
+    {% else %}
+        <p>No active order found</p>
+    {% endif %}
+
+</body>
+</html>

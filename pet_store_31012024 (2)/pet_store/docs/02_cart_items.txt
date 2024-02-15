@@ -1,0 +1,78 @@
+=======================================================================================================================================
+
+urls.py: 
+    path('cart-items', views.cart_items, name='cart_items'),
+
+=======================================================================================================================================
+
+models.py: NA
+
+=======================================================================================================================================
+
+templates: cart_items.html
+
+In cart items page the below details are displayed:
+Photo of pet
+Name of pet
+Select quantity
+remove pet
+pet unit price
+pet quantity price
+total price of order
+
+So the above details are to be collected and sent as context to cart_items.html
+
+=======================================================================================================================================
+
+views.py:
+
+
+Photo of pet
+Name of pet
+Select quantity
+remove pet
+pet unit price
+pet quantity price
+total price of order
+
+So the above details are to be collected and sent as context to cart_items.html and the above details are to belong to the current logged in user.
+
+So first get the cart items belonging to current user by using customer field.
+Then for each item we have to calculate the pet quantity price i.e. if pet price is 1000 and quantity is 4 then pet quantity price is 4000.
+Then we have to calculate the total price of all pets in cart.
+
+The above data will be used in many view functions to update the cart strip in menu. So for reusing we write a new function to only collect
+and calculate the above details.
+
+
+def collect_cart_details(request):
+    cart_items_list = CartItem.objects.filter(customer__user=request.user)
+    qty_list = [n for n in range(1, 6)]
+    all_items_price = 0
+    for item in cart_items_list:
+        item.item_price = item.quantity * item.pet.price
+        all_items_price = all_items_price + item.item_price
+
+    context = {
+        'cart': cart_items_list,
+        'total_price': all_items_price,
+        'qty_list': qty_list
+    }
+    return context
+
+>> First get the cart items list for given user.
+>> Now traverse through the list and calculate the quantiy price by using the price from pet object and quantity column of cart item
+>> also calculate the grand total price by adding all quantity price which will be displayed as Total.
+>> In the context we are also passing the quantity range 1 to 5 to set the drop down to quantity available in cart.
+
+
+The above function is called from the cart_tems view function and passed as context to cart_items.html, which will display all the details in tabular format.
+
+def cart_items(request):
+    template_name = 'cart_items.html'
+    # Collect the cart details
+    context = collect_cart_details(request)
+    return render(request, template_name, context=context)
+
+
+=======================================================================================================================================

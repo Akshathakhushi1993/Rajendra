@@ -1,0 +1,104 @@
+=======================================================================================================================================
+
+
+urls.py: 
+    path('checkout-order/<int:sa_id>', views.checkout_order, name='checkout_order'),
+	
+	
+=======================================================================================================================================
+
+models.py: 
+
+Order table has customer to differentiate the orders for respective users. It also has the shipping address as each order may have different shipping address.
+So each order will have the shipping address selected in select shipping address page.
+Order also has transaction_id which will be updated after payment success.
+And complete column which by default is False, once the order is successful, complete field will be set to True.
+
+class Order(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
+    date_ordered = models.DateTimeField(auto_now_add=True)
+    complete = models.BooleanField(default=False)
+    transaction_id = models.CharField(max_length=100, null=True)
+    shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    def get_total_cost(self):
+        return sum(item.get_cost() for item in self.items.all())
+		
+get_total_cost gives the grand total price
+
+
+Each order will have multiple items, for this OrderItem table is created with is linked to Order table.
+OrderItem mainly have the details of individual item quantity, price etc.
+
+class OrderItem(models.Model):
+    product = models.ForeignKey(Pet, on_delete=models.SET_NULL, null=True)
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.SET_NULL, null=True)
+    quantity = models.IntegerField(default=0, null=True, blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def get_cost(self):
+        return self.price * self.quantity
+		
+get_cost method gives the quantity price
+
+
+=======================================================================================================================================
+
+templates: NA
+
+
+=======================================================================================================================================
+
+views.py:
+
+checkout order view function main task is to save the cart items into order table.
+
+def checkout_order(request, sa_id):
+    cart_items_list = collect_cart_details(request)['cart']
+    customer = Customer.objects.filter(user=request.user)
+    delivery_addr = ShippingAddress.objects.filter(id=sa_id)
+    if customer:
+        order = Order(customer=customer[0], shipping_address=delivery_addr[0])
+        order.save()
+        for item in cart_items_list:
+            OrderItem.objects.create(
+                order=order,
+                product=item.pet,
+                price=item.pet.price,
+                quantity=item.quantity
+            )
+        # Empty the cart
+        clear_cart_details(request)
+        # Save order_id for future use in payment order page
+        request.session['order_id'] = order.id
+        # redirect for payment
+        return redirect(reverse('payment_order'))
+    else:
+        return redirect(reverse('list_pets'))
+
+First all the cart items details are collected by reusing the collect_cart_details function.
+Get the customer by using the request.user objects
+Get the shipping address from the path parameter.
+
+First create the order with customer and shipping address. transaction_id and complete columns will be updated later after payment.
+Then for each item create a OrderItem record by using the details collected by collect_cart_details function.
+
+Now since order is created empty the cart by deleting the cart items for current user. This is done in clear_cart_details function.
+
+def clear_cart_details(request):
+    cart_items_list = CartItem.objects.filter(customer__user=request.user)
+    for item in cart_items_list:
+        item.delete()
+		
+		
+We will save the order_id of created order table in session so that it will be used in payment view functions.
+
+
+Once done redirect to the payment order page.
+
+
+=======================================================================================================================================

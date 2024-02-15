@@ -1,0 +1,27 @@
+=======================================================================================================================================
+
+In base.html there is section to display the number of items in cart and total price.
+
+For this data to display the collect_cart_details function is used.
+The details collected by the collect_cart_details function are sent as context to all the pages so that in any page the cart details 
+will display, if cart items exists.
+
+                        <div class="nav-item nav-link">
+                        {% with total_items=cart|length %}
+                            {% if total_items > 0 %}
+                                Your Cart:&nbsp
+                                <a href="{% url 'cart_items' %}">
+                                    {{total_items}} Item{{total_items|pluralize}}&nbsp
+                                    Rs {{ total_price }}
+                                </a>
+                            {% else %}
+                                Your Cart is empty
+                            {% endif %}
+                        {% endwith %}
+                        </div>
+
+
+cart and total_price is sent in context.
+when clicked on the items app goes to cart_items page.
+
+=======================================================================================================================================

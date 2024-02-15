@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+<div class="text-center" style="font-size:25px;margin-top:55px;">
+    {% for message in messages %}
+        <div class="container-fluid p-0">
+            <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="True">&times;</span>
+                </button>
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% block login %}
+    <center><h2>Customer Login Page</h2></center>
+    <form method="post" class="form-horizontal">
+        {% csrf_token %}
+        <div class="form-row mt-2 justify-content-center">
+            <div class="form-group col-md-6">
+                <input name="username" value="" placeholder="Username" type="text" class="form-control" />
+                {% if form.username.errors %}
+                    {% for err in form.username.errors %}
+                        <div class="fs-6 mb-2 col-xs-8">
+                            <p style="font-size:12px;color:red" class="ml-2 mt-2">* {{ err }}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-row mt-2 justify-content-center">
+            <div class="form-group col-md-6">
+                <input name="password" value="" placeholder="Password" type="password" class="form-control" />
+                {% if form.password.errors %}
+                    {% for err in form.password.errors %}
+                        <p style="font-size:12px;color:red" class="ml-2 mt-2">* {{ err }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                {% if form.non_field_errors %}
+                    {% for err in form.non_field_errors %}
+                        <p class="ml-2 mt-2" style="font-size:12px;color:red">{{ err }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-row mt-2 justify-content-center">
+            <button type="submit" class="col-3 btn btn-primary">Sign in</button>
+        </div>
+    </form>
+    <div class="text-center mt-3">
+        Don't have an account?
+        <a href="{% url 'register' %}">
+            <strong>Sign Up</strong>
+        </a>
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   
+</head>
+<body>
+
+    <h1>pet {{pet.id}}</h1>
+    <img src="static/media/{{ data.image }}" alt="No Image" style="width: 200px;">
+    <h1>{{pet.name}}</h1>
+  
+    <a href="logout">Logout</a>
+    <script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+</body>
+</html>
